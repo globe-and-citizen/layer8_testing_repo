@@ -1,0 +1,55 @@
+name: Interceptor To Middleware E2E Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the tests on'
+        required: false
+        default: 'main'
+        type: string
+  push:
+    branches: main
+
+jobs:
+  test-imsharer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Clone layer8
+        run: git clone git@github.com:globe-and-citizen/layer8.git
+
+      - name: Run layer8 server
+        run: git checkout development && make run_server_local
+        working-directory: ./layer8
+
+      - name: Clone interceptor
+        run: git clone git@github.com:globe-and-citizen/layer8-interceptor.git
+
+      - name: Build interceptor
+        run: git checkout development && make build && mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/dist/
+        working-directory: ./layer8-interceptor
+
+      - name: Clone middleware
+        run: git clone git@github.com:globe-and-citizen/layer8-middleware.git
+
+      - name: Build middleware
+        run: git checkout development && make build && mv ./dist/middleware.json ../layer8/sp_mocks/imsharer/backend/dist/
+        working-directory: ./layer8-middleware
+
+      - name: Run imsharer server
+        run: node index.js
+        working-directory: ./layer8/sp_mocks/imsharer/backend
+
+      - name: Run imsharer frontend
+        run: npm run dev
+        working-directory: ./layer8/sp_mocks/imsharer/frontend
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v3
+        with:
+          wait-on: "http://localhost:5173"
+          browser: chrome
+          record: true
