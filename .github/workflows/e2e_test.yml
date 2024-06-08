@@ -19,21 +19,30 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Clone layer8
-        run: git clone git@github.com:globe-and-citizen/layer8.git
+        uses: actions/checkout@v2
+        with:
+          repository: globe-and-citizen/layer8
+          path: layer8
 
       - name: Run layer8 server
         run: git checkout development && make run_server_local
         working-directory: ./layer8
 
       - name: Clone interceptor
-        run: git clone git@github.com:globe-and-citizen/layer8-interceptor.git
+        uses: actions/checkout@v2
+        with:
+          repository: globe-and-citizen/layer8-interceptor
+          path: layer8-interceptor
 
       - name: Build interceptor
         run: git checkout development && make build && mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/dist/
         working-directory: ./layer8-interceptor
 
       - name: Clone middleware
-        run: git clone git@github.com:globe-and-citizen/layer8-middleware.git
+        uses: actions/checkout@v2
+        with:
+          repository: globe-and-citizen/layer8-middleware
+          path: layer8-middleware
 
       - name: Build middleware
         run: git checkout development && make build && mv ./dist/middleware.json ../layer8/sp_mocks/imsharer/backend/dist/
