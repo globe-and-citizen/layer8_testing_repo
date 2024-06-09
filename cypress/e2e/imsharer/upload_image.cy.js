@@ -11,9 +11,14 @@ describe('upload and display images', () => {
 
     it('uploads images', () => {
         images.forEach((image) => {
-            cy.fixture(`${image}`).as('image')
-            cy.get('input[type="file"]').attachFile(image)
-            cy.get('input[type="button"]').click()
+            cy.fixture(`${image}`).then((fileContent) => {
+                cy.get('input[type="file"]').attachFile({
+                    fileContent,
+                    fileName: image,
+                    mimeType: 'image/jpeg',
+                })
+                cy.get('input[type="button"]').click()
+            })
         })
     })
 
