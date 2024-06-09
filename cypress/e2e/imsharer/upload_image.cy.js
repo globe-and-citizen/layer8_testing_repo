@@ -6,19 +6,13 @@ describe('upload and display images', () => {
     beforeEach(() => {
         cy.visit('http://localhost:5173')
         // wait for the tunnel to initialize
-        cy.wait(100)
+        cy.wait(500)
     })
 
     it('uploads images', () => {
         images.forEach((image) => {
-            cy.fixture(`${image}`).then((fileContent) => {
-                cy.get('input[type="file"]').attachFile({
-                    fileContent,
-                    fileName: image,
-                    mimeType: 'image/jpeg',
-                })
-                cy.get('input[type="button"]').click()
-            })
+            cy.get('input[type="file"]').selectFile(`cypress/fixtures/${image}`, { force: true })
+            cy.get('input[type="button"]').click()
         })
     })
 

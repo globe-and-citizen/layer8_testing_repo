@@ -13,7 +13,7 @@ describe('initialize the encrypted tunnel', () => {
     
     it('checks that tunnel initialization message is logged', () => {
         // wait for the tunnel to initialize
-        cy.wait(1000)
+        cy.wait(500)
         // check the console for the tunnel initialization message
         cy.then(() => {
             expect(spy).to.be.calledWith('[http://localhost:6001] Encrypted tunnel successfully established.')
@@ -24,7 +24,7 @@ describe('initialize the encrypted tunnel', () => {
         // at the start of the test, the loading text should be present
         cy.get('.loader').should('exist')
         // wait for the tunnel to initialize
-        cy.wait(100)
+        cy.wait(500)
         // check that the loading text is no longer present
         cy.get('.loader').should('not.exist')
     })
