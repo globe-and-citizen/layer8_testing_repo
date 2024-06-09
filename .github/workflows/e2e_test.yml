@@ -28,8 +28,10 @@ jobs:
       - name: Run layer8 server
         run: |
           cd layer8
-          make setup_and_run &
-          for attempt in {1..20}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
+          sed -i "s/TEST_CLIENT_BACKEND_URL=localhost:8000/TEST_CLIENT_BACKEND_URL=localhost:6001/g" server/.env.dev
+          sed -i "s/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:8000/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:6001/g" server/.env.dev
+          nohup make setup_and_run > layer8.log 2>&1 &
+          for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
         uses: actions/checkout@v2
@@ -42,9 +44,10 @@ jobs:
         run: |
           cd layer8-middleware
           make build
-          mkdir ../layer8/sp_mocks/imsharer/backend/dist
-          mv ./dist/middleware.json ../layer8/sp_mocks/imsharer/backend/dist/
-        working-directory: ./layer8-middleware
+          mkdir -p ../layer8/sp_mocks/imsharer/backend/dist/dist 
+          cp ./index.js ../layer8/sp_mocks/imsharer/backend/dist/middleware.js
+          mv ./dist/middleware.json ../layer8/sp_mocks/imsharer/backend/dist/dist/
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/backend/dist/dist/
 
       - name: Clone interceptor
         uses: actions/checkout@v2
@@ -56,25 +59,28 @@ jobs:
       - name: Build interceptor
         run: |
           cd layer8-interceptor
-          make build
           echo "LAYER8_PROXY_SCHEME=http" > .env
           echo "LAYER8_PROXY_DOMAIN=localhost" >> .env
           echo "LAYER8_PROXY_PORT=5001" >> .env
-          mkdir ../layer8/sp_mocks/imsharer/frontend/dist
-          mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/dist/
+          make build
+          mkdir -p ../layer8/sp_mocks/imsharer/frontend/dist/dist
+          cp ./index.js ../layer8/sp_mocks/imsharer/frontend/dist/interceptor.js
+          mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/dist/dist/
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/frontend/dist/dist/
 
       - name: Run imsharer backend
         run: |
           cd layer8/sp_mocks/imsharer/backend
-          sed -i "s/('layer8_middleware')/require('.\/dist\/middleware')/g" index.js
+          sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" index.js
+          npm install
           node index.js &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6001/ > /dev/null; then break; fi; done
 
       - name: Run imsharer frontend
         run: |
           cd layer8/sp_mocks/imsharer/frontend
-          sed -i "s/('layer8_interceptor')/require('.\/dist\/interceptor')/g" src/App.vue
-          sed -i "s/('layer8_interceptor')/require('.\/dist\/interceptor')/g" src/views/HomeView.vue
+          sed -i "s/('layer8_interceptor')/('.\/dist\/interceptor')/g" src/App.vue
+          sed -i "s/('layer8_interceptor')/('.\/dist\/interceptor')/g" src/views/HomeView.vue
           npm install
           npm run dev &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:5173/ > /dev/null; then break; fi; done
@@ -83,5 +89,9 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           wait-on: 'http://localhost:5173'
-          record: true
           browser: chrome
+
+      - name: Print logs
+        run: |
+          cd layer8
+          cat layer8.log
