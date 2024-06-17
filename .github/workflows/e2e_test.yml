@@ -63,10 +63,10 @@ jobs:
           echo "LAYER8_PROXY_DOMAIN=localhost" >> .env
           echo "LAYER8_PROXY_PORT=5001" >> .env
           make build
-          mkdir -p ../layer8/sp_mocks/imsharer/frontend/dist/dist
-          cp ./index.js ../layer8/sp_mocks/imsharer/frontend/dist/interceptor.js
-          mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/dist/dist/
-          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/frontend/dist/dist/
+          mkdir -p ../layer8/sp_mocks/imsharer/frontend/src/dist/dist
+          cp ./index.js ../layer8/sp_mocks/imsharer/frontend/src/dist/interceptor.js
+          mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/src/dist/dist/
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/frontend/src/dist/dist/
 
       - name: Run imsharer backend
         run: |
@@ -90,3 +90,86 @@ jobs:
         with:
           wait-on: 'http://localhost:5173'
           browser: chrome
+          spec: cypress/e2e/imsharer/*.cy.js
+
+  test-wgp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Clone layer8
+        uses: actions/checkout@v2
+        with:
+          repository: globe-and-citizen/layer8
+          path: layer8
+          ref: development
+
+      - name: Run layer8 server
+        run: |
+          cd layer8
+          sed -i "s/TEST_CLIENT_BACKEND_URL=localhost:8000/TEST_CLIENT_BACKEND_URL=localhost:6001/g" server/.env.dev
+          sed -i "s/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:8000/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:6001/g" server/.env.dev
+          make setup_and_run &
+          for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
+
+      - name: Clone middleware
+        uses: actions/checkout@v2
+        with:
+          repository: globe-and-citizen/layer8-middleware
+          path: layer8-middleware
+          ref: development
+
+      - name: Build middleware
+        run: |
+          cd layer8-middleware
+          make build
+          mkdir -p ../layer8/sp_mocks/imsharer/backend/dist/dist 
+          cp ./index.js ../layer8/sp_mocks/imsharer/backend/dist/middleware.js
+          mv ./dist/middleware.json ../layer8/sp_mocks/imsharer/backend/dist/dist/
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/backend/dist/dist/
+
+      - name: Clone interceptor
+        uses: actions/checkout@v2
+        with:
+          repository: globe-and-citizen/layer8-interceptor
+          path: layer8-interceptor
+          ref: development
+
+      - name: Build interceptor
+        run: |
+          cd layer8-interceptor
+          echo "LAYER8_PROXY_SCHEME=http" > .env
+          echo "LAYER8_PROXY_DOMAIN=localhost" >> .env
+          echo "LAYER8_PROXY_PORT=5001" >> .env
+          make build
+          mkdir -p ../layer8/sp_mocks/imsharer/frontend/src/dist/dist
+          cp ./index.js ../layer8/sp_mocks/imsharer/frontend/src/dist/interceptor.js
+          mv ./dist/interceptor.json ../layer8/sp_mocks/imsharer/frontend/src/dist/dist/
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/frontend/src/dist/dist/
+
+      - name: Run WGP backend
+        run: |
+          cd layer8/sp_mocks/wgp/backend
+          sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" index.js
+          npm install
+          node index.js &
+          for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6001/ > /dev/null; then break; fi; done
+
+      - name: Run WGP frontend
+        run: |
+          cd layer8/sp_mocks/wgp/frontend
+          sed -i "s/('layer8_interceptor')/('.\/dist\/interceptor')/g" src/App.vue
+          sed -i "s/('layer8_interceptor')/('..\/dist\/interceptor')/g" src/views/CallBack.vue
+          sed -i "s/('layer8_interceptor')/('..\/dist\/interceptor')/g" src/views/Home.vue
+          sed -i "s/('layer8_interceptor')/('..\/dist\/interceptor')/g" src/views/LoginRegister.vue
+          npm install
+          npm run dev &
+          for attempt in {1..20}; do sleep 2; if curl -s http://localhost:5173/ > /dev/null; then break; fi; done
+
+      - name: Run cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          wait-on: 'http://localhost:5173'
+          browser: chrome
+          spec: cypress/e2e/wgp/*.cy.js
