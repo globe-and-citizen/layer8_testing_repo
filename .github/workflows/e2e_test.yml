@@ -151,6 +151,10 @@ jobs:
       - name: Run WGP backend
         run: |
           cd layer8/sp_mocks/wgp/backend
+          echo "PORT=6002" > .env
+          echo "FRONTEND_URL=http://localhost:5173" >> .env
+          echo "LAYER8_URL=http://localhost:5001" >> .env
+          echo "BACKEND_URL=http://localhost:6002" >> .env
           sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" server.js
           npm install
           node server.js &
