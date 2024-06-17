@@ -79,8 +79,8 @@ jobs:
       - name: Run imsharer frontend
         run: |
           cd layer8/sp_mocks/imsharer/frontend
-          sed -i "s/('layer8_interceptor')/('.\/dist\/interceptor')/g" src/App.vue
-          sed -i "s/('layer8_interceptor')/('.\/dist\/interceptor')/g" src/views/HomeView.vue
+          sed -i "s/('layer8_interceptor')/('..\/dist\/interceptor')/g" src/App.vue
+          sed -i "s/('layer8_interceptor')/('..\/..\/dist\/interceptor')/g" src/views/HomeView.vue
           npm install
           npm run dev &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:5173/ > /dev/null; then break; fi; done
