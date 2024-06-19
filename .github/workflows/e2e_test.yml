@@ -73,7 +73,7 @@ jobs:
           cd layer8/sp_mocks/imsharer/backend
           sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" index.js
           npm install
-          node index.js &
+          node index.js > log.txt 2>&1 &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6001/ > /dev/null; then break; fi; done
 
       - name: Run imsharer frontend
@@ -88,9 +88,12 @@ jobs:
       - name: Run cypress tests
         uses: cypress-io/github-action@v6
         with:
-          wait-on: 'http://localhost:5173'
+          wait-on: 'http://localhost:5173, http://localhost:6001, http://localhost:5001'
           browser: chrome
           spec: cypress/e2e/imsharer/*.cy.js
+
+      - run: |
+          cat layer8/sp_mocks/imsharer/backend/log.txt
 
   test-wgp:
     runs-on: ubuntu-latest
@@ -157,12 +160,14 @@ jobs:
           echo "BACKEND_URL=http://localhost:6002" >> .env
           sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" server.js
           npm install
-          node server.js &
+          node server.js > log.txt 2>&1 &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6002/ > /dev/null; then break; fi; done
 
       - name: Run WGP frontend
         run: |
           cd layer8/sp_mocks/wgp/frontend
+          echo "VITE_BACKEND_URL = http://localhost:6002" > .env
+          echo "VITE_PROXY_URL = http://localhost:5001" >> .env
           sed -i "s/('layer8_interceptor')/('.\/dist\/interceptor')/g" src/App.vue
           sed -i "s/('layer8_interceptor')/('..\/dist\/interceptor')/g" src/views/CallBack.vue
           sed -i "s/('layer8_interceptor')/('..\/dist\/interceptor')/g" src/views/Home.vue
@@ -174,6 +179,9 @@ jobs:
       - name: Run cypress tests
         uses: cypress-io/github-action@v6
         with:
-          wait-on: 'http://localhost:5173'
+          wait-on: 'http://localhost:5173, http://localhost:6002, http://localhost:5001'
           browser: chrome
           spec: cypress/e2e/wgp/*.cy.js
+
+      - run: |
+          cat layer8/sp_mocks/wgp/backend/log.txt
