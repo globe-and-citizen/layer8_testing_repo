@@ -93,6 +93,7 @@ jobs:
           spec: cypress/e2e/imsharer/*.cy.js
 
       - name: Check logs
+        if: always()
         run: |
           cat layer8/sp_mocks/imsharer/backend/log.txt
           curl -s http://localhost:6001/ > /dev/null
@@ -187,6 +188,7 @@ jobs:
           spec: cypress/e2e/wgp/*.cy.js
 
       - name: Check logs
+        if: always()
         run: |
           cat layer8/sp_mocks/wgp/backend/log.txt
           curl -s http://localhost:6002/ > /dev/null
