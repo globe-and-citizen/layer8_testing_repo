@@ -92,8 +92,10 @@ jobs:
           browser: chrome
           spec: cypress/e2e/imsharer/*.cy.js
 
-      - run: |
+      - name: Check logs
+        run: |
           cat layer8/sp_mocks/imsharer/backend/log.txt
+          curl -s http://localhost:6001/ > /dev/null
 
   test-wgp:
     runs-on: ubuntu-latest
@@ -159,6 +161,7 @@ jobs:
           echo "LAYER8_URL=http://localhost:5001" >> .env
           echo "BACKEND_URL=http://localhost:6002" >> .env
           sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" server.js
+          sed -i "s/\/\/app.use(Layer8);/app.get(\"\/\", (req, res) => {res.json({message: \"Hello there!\"})});/g" server.js
           npm install
           node server.js > log.txt 2>&1 &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6002/ > /dev/null; then break; fi; done
@@ -183,5 +186,7 @@ jobs:
           browser: chrome
           spec: cypress/e2e/wgp/*.cy.js
 
-      - run: |
+      - name: Check logs
+        run: |
           cat layer8/sp_mocks/wgp/backend/log.txt
+          curl -s http://localhost:6002/ > /dev/null
