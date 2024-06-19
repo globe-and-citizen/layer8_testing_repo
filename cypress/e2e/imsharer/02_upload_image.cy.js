@@ -11,8 +11,7 @@ describe('upload and display images', () => {
 
     it('uploads images', () => {
         images.forEach((image) => {
-            cy.get('input[type="file"]').selectFile(`cypress/fixtures/${image}`, { force: true })
-            cy.get('input[type="button"]').click()
+            cy.get('input[name="upload"]').selectFile(`cypress/fixtures/${image}`, { force: true })
         })
     })
 
