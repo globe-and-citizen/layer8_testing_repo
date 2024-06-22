@@ -43,7 +43,6 @@ jobs:
       - name: Build middleware
         run: |
           cd layer8-middleware
-          cat middleware.go
           make build
           mkdir -p ../layer8/sp_mocks/imsharer/backend/dist/dist 
           cp ./index.js ../layer8/sp_mocks/imsharer/backend/dist/middleware.js
@@ -96,6 +95,7 @@ jobs:
       - name: Check logs
         if: always()
         run: |
+          echo "On Node version: $(node -v)"
           echo "============== LAYER8 SERVER LOG =============="
           cat layer8/log.txt
           echo "============== IMSHARE SERVER LOG =============="
@@ -194,6 +194,7 @@ jobs:
       - name: Check logs
         if: always()
         run: |
+          echo "On Node version: $(node -v)"
           echo "============== LAYER8 SERVER LOG =============="
           cat layer8/log.txt
           echo "============== WGP SERVER LOG =============="
