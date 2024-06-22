@@ -16,15 +16,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Upgrade node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '20.15.0'
 
       - name: Clone layer8
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: globe-and-citizen/layer8
           path: layer8
@@ -39,7 +39,7 @@ jobs:
           for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: globe-and-citizen/layer8-middleware
           path: layer8-middleware
@@ -55,7 +55,7 @@ jobs:
           cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/backend/dist/dist/
 
       - name: Clone interceptor
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: globe-and-citizen/layer8-interceptor
           path: layer8-interceptor
@@ -100,15 +100,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Upgrade node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '20.15.0'
 
       - name: Clone layer8
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: globe-and-citizen/layer8
           path: layer8
@@ -123,7 +123,7 @@ jobs:
           for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: globe-and-citizen/layer8-middleware
           path: layer8-middleware
@@ -139,7 +139,7 @@ jobs:
           cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../layer8/sp_mocks/imsharer/backend/dist/dist/
 
       - name: Clone interceptor
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: globe-and-citizen/layer8-interceptor
           path: layer8-interceptor
