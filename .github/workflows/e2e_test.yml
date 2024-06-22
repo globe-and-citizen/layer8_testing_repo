@@ -30,7 +30,7 @@ jobs:
           cd layer8
           sed -i "s/TEST_CLIENT_BACKEND_URL=localhost:8000/TEST_CLIENT_BACKEND_URL=localhost:6001/g" server/.env.dev
           sed -i "s/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:8000/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:6001/g" server/.env.dev
-          make setup_and_run &
+          make setup_and_run > log.txt 2>&1 &
           for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
@@ -96,6 +96,9 @@ jobs:
       - name: Check logs
         if: always()
         run: |
+          echo "============== LAYER8 SERVER LOG =============="
+          cat layer8/log.txt
+          echo "============== IMSHARE SERVER LOG =============="
           cat layer8/sp_mocks/imsharer/backend/log.txt
           curl -s http://localhost:6001/ > /dev/null
 
@@ -117,7 +120,7 @@ jobs:
           cd layer8
           sed -i "s/TEST_CLIENT_BACKEND_URL=localhost:8000/TEST_CLIENT_BACKEND_URL=localhost:6002/g" server/.env.dev
           sed -i "s/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:8000/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:6002/g" server/.env.dev
-          make setup_and_run &
+          make setup_and_run > log.txt 2>&1 &
           for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
@@ -191,5 +194,8 @@ jobs:
       - name: Check logs
         if: always()
         run: |
+          echo "============== LAYER8 SERVER LOG =============="
+          cat layer8/log.txt
+          echo "============== WGP SERVER LOG =============="
           cat layer8/sp_mocks/wgp/backend/log.txt
           curl -s http://localhost:6002/ > /dev/null
