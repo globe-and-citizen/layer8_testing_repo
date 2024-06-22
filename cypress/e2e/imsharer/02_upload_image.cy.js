@@ -1,36 +1,27 @@
 /// <reference types="cypress" />
 
+const images = Array.from({ length: 6 }, (_, i) => `image${i + 1}.jpg`)
+
 describe('upload and display images', () => {
-    it('uploads images and confirms they are displayed', () => {
+    beforeEach(() => {
         cy.visit('http://localhost:5173')
+        // wait for the tunnel to initialize
         cy.wait(500)
+    })
 
-        // upload images
-        cy.get('input[name="upload"]').selectFile('cypress/fixtures/image1.jpg', { force: true })
-        cy.wait(500)
-        cy.get('img[alt="image1.jpg"]').should('exist')
+    it('uploads images', () => {
+        images.forEach((image) => {
+            cy.get('input[type="file"]').selectFile(`cypress/fixtures/${image}`, { force: true })
+            cy.get('input[type="button"]').click()
+        })
+    })
 
-        cy.get('input[name="upload"]').selectFile('cypress/fixtures/image2.jpg', { force: true })
-        cy.wait(500)
-        cy.get('img[alt="image2.jpg"]').should('exist')
-
-        cy.get('input[name="upload"]').selectFile('cypress/fixtures/image3.jpg', { force: true })
-        cy.wait(500)
-        cy.get('img[alt="image3.jpg"]').should('exist')
-
-        cy.get('input[name="upload"]').selectFile('cypress/fixtures/image4.jpg', { force: true })
-        cy.wait(500)
-        cy.get('img[alt="image4.jpg"]').should('exist')
-
-        cy.get('input[name="upload"]').selectFile('cypress/fixtures/image5.jpg', { force: true })
-        cy.wait(500)
-        cy.get('img[alt="image5.jpg"]').should('exist')
-
-        cy.get('input[name="upload"]').selectFile('cypress/fixtures/image6.jpg', { force: true })
-        cy.wait(500)
-        cy.get('img[alt="image6.jpg"]').should('exist')
-
+    it('displays the images in the gallery', () => {
         // the number of images in the gallery should be at least the number of images uploaded
-        cy.get('.gallery').find('img').should('have.length.gte', 6)
+        cy.get('.gallery').find('img').should('have.length.gte', images.length)
+        // each image should have an alt attribute
+        images.forEach((image) => {
+            cy.get(`img[alt="${image}"]`).should('exist')
+        })
     })
 })
