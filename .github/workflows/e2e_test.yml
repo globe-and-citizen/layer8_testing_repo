@@ -18,6 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Upgrade node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.15.0'
+
       - name: Clone layer8
         uses: actions/checkout@v2
         with:
@@ -107,6 +112,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Upgrade node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.15.0'
 
       - name: Clone layer8
         uses: actions/checkout@v2
