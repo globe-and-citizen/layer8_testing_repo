@@ -35,7 +35,7 @@ jobs:
           cd layer8
           sed -i "s/TEST_CLIENT_BACKEND_URL=localhost:8000/TEST_CLIENT_BACKEND_URL=localhost:6001/g" server/.env.dev
           sed -i "s/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:8000/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:6001/g" server/.env.dev
-          make setup_and_run > log.txt 2>&1 &
+          make setup_and_run &
           for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
@@ -78,7 +78,7 @@ jobs:
           cd layer8/sp_mocks/imsharer/backend
           sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" index.js
           npm install
-          node index.js > log.txt 2>&1 &
+          node index.js &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6001/ > /dev/null; then break; fi; done
 
       - name: Run imsharer frontend
@@ -119,7 +119,7 @@ jobs:
           cd layer8
           sed -i "s/TEST_CLIENT_BACKEND_URL=localhost:8000/TEST_CLIENT_BACKEND_URL=localhost:6002/g" server/.env.dev
           sed -i "s/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:8000/TEST_CLIENT_BACKEND_URI=http:\/\/localhost:6002/g" server/.env.dev
-          make setup_and_run > log.txt 2>&1 &
+          make setup_and_run &
           for attempt in {1..30}; do sleep 2; if curl -s http://localhost:5001/ > /dev/null; then break; fi; done
 
       - name: Clone middleware
@@ -167,7 +167,7 @@ jobs:
           sed -i "s/('layer8_middleware')/('.\/dist\/middleware')/g" server.js
           sed -i "s/\/\/app.use(Layer8);/app.get(\"\/\", (req, res) => {res.json({message: \"Hello there!\"})});/g" server.js
           npm install
-          node server.js > log.txt 2>&1 &
+          node server.js &
           for attempt in {1..20}; do sleep 2; if curl -s http://localhost:6002/ > /dev/null; then break; fi; done
 
       - name: Run WGP frontend
